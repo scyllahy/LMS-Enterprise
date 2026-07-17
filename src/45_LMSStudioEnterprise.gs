@@ -27,3 +27,25 @@ function installLMSStudioEnterprise(installKey) {
 function setupLMSStudioEnterprise_() {
   return installLMSStudioEnterprise(Props.required('INSTALL_KEY'));
 }
+
+// Recovery entry point for the Apps Script editor. Never expose this without the trailing _.
+function resetAdminPassword_() {
+  const username = Props.get('SETUP_ADMIN_USERNAME', 'admin').trim().toLowerCase();
+  const password = Props.required('SETUP_ADMIN_PASSWORD');
+  if (password.length < 12) throw AppError.validation('รหัสผ่านผู้ดูแลต้องมีอย่างน้อย 12 ตัวอักษร');
+  const user = UserRepository.findOne({ username: username });
+  if (!user) throw AppError.notFound('ไม่พบบัญชีผู้ดูแล กรุณารัน setupLMSStudioEnterprise_ ก่อน');
+  if (user.role !== APP_ROLES.SYSTEM_ADMIN) throw AppError.permission('บัญชีนี้ไม่ใช่ผู้ดูแลระบบ');
+  const h = Security.hash(password);
+  UserRepository.update(user.userId, {
+    passwordHash: h.hash,
+    salt: h.salt,
+    status: APP_STATUSES.ACTIVE,
+    mustChangePassword: true
+  }, { actorId: 'PASSWORD_RECOVERY' });
+  SessionRepository.findMany({ userId: user.userId }).forEach(s => {
+    if (!Utils.bool(s.revoked)) SessionRepository.update(s.sessionId, { revoked: true }, { actorId: 'PASSWORD_RECOVERY' });
+  });
+  Props.set('SETUP_ADMIN_PASSWORD', '');
+  return { reset: true, username: username };
+}
