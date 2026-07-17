@@ -2,8 +2,11 @@ const AuthService = Object.freeze({
   login(p, client) {
     p = requireObject_(p);
     const username = requireNonBlank_(p.username, 'username').toLowerCase();
+    const cache = CacheService.getScriptCache(), key = 'LOGIN_FAIL_' + Utils.sha(username).slice(0, 24), failures = Utils.int(cache.get(key));
+    if (failures >= 5) throw new AppError('RATE_LIMITED', 'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณารอ 10 นาที');
     const u = UserRepository.findOne({ username });
-    if (!u || u.status !== APP_STATUSES.ACTIVE || !Security.verify(p.password, u.salt, u.passwordHash)) throw new AppError('INVALID_CREDENTIALS', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    if (!u || u.status !== APP_STATUSES.ACTIVE || !Security.verify(p.password, u.salt, u.passwordHash)) { cache.put(key, String(failures + 1), 600); throw new AppError('INVALID_CREDENTIALS', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); }
+    cache.remove(key);
     const token = Security.token(), exp = new Date(Date.now() + APP_CONFIG.security.sessionHours * 3600000);
     const s = SessionRepository.insert({ tokenHash: Utils.sha(token), userId: u.userId, expiresAt: exp.toISOString(), lastSeenAt: Utils.now(), deviceJson: client || {}, revoked: false }, { actorId: u.userId });
     UserRepository.update(u.userId, { lastLoginAt: Utils.now() }, { actorId: u.userId });
@@ -27,6 +30,7 @@ const AuthService = Object.freeze({
     if (String(p.currentPassword) === next) throw AppError.validation('รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสผ่านเดิม');
     const h = Security.hash(next);
     UserRepository.update(u.userId, { passwordHash: h.hash, salt: h.salt, mustChangePassword: false }, { actorId: u.userId });
+    SessionRepository.findMany({ userId: u.userId }).filter(s => s.sessionId !== c.sessionId && !Utils.bool(s.revoked)).forEach(s => SessionRepository.update(s.sessionId, { revoked: true }, { actorId: u.userId }));
     return { changed: true };
   },
   logout(c) { return SessionRepository.update(c.sessionId, { revoked: true }, { actorId: c.userId }); }
