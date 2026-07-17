@@ -8,7 +8,7 @@
       <form id="loginForm" class="card login-card"><div class="logo">LS</div><h2>ยินดีต้อนรับ</h2><p id="school" class="muted">กำลังโหลด...</p><label>ชื่อผู้ใช้<input id="username" autocomplete="username" required></label><label>รหัสผ่าน<input id="password" type="password" autocomplete="current-password" required></label><button id="loginButton" class="primary" type="submit">เข้าสู่ระบบ</button><p id="loginError" class="error"></p></form>
     </section>
     <section id="appView" class="app hidden">
-      <aside><div class="aside-brand"><span class="logo small">LS</span><div><strong>LMS Studio</strong><small id="asideSchool"></small></div></div><nav><button class="nav active" data-page="home">ภาพรวม</button><button class="nav" data-page="quizzes">แบบทดสอบ</button></nav><div class="profile"><span id="avatar"></span><div><strong id="displayName"></strong><small id="role"></small></div><button id="logoutButton" title="ออกจากระบบ">↪</button></div></aside>
+      <aside><div class="aside-brand"><span class="logo small">LS</span><div><strong>LMS Studio</strong><small id="asideSchool"></small></div></div><nav id="mainNav"></nav><div class="profile"><span id="avatar"></span><div><strong id="displayName"></strong><small id="role"></small></div><button id="logoutButton" title="ออกจากระบบ">↪</button></div></aside>
       <div class="content"><header><div><span class="eyebrow">แดชบอร์ด</span><h2 id="greeting">สวัสดี</h2></div><button id="refreshButton" class="secondary">รีเฟรช</button></header><section id="page" aria-live="polite"></section></div>
     </section>
   </main>

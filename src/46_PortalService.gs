@@ -1,0 +1,43 @@
+const PortalService = Object.freeze({
+  bootstrap(c) {
+    const data = { user: cleanUser_(UserRepository.findById(c.userId)), role: c.role, permissions: c.permissions || [] };
+    if (PermissionService.has(c, 'class.read') || PermissionService.has(c, 'class.create')) data.classes = ClassRepository.findMany({ status: APP_STATUSES.ACTIVE });
+    if (PermissionService.has(c, 'subject.read') || PermissionService.has(c, 'subject.create')) data.subjects = SubjectRepository.findMany({ status: APP_STATUSES.ACTIVE });
+    return data;
+  },
+  listUsers(c) { PermissionService.requireAny(c, ['user.read', 'system.manage']); return UserService.list(c); },
+  createUser(c, p) {
+    PermissionService.requireAny(c, ['user.create', 'system.manage']);
+    p = requireObject_(p); const role = p.role || APP_ROLES.STUDENT;
+    if (!Object.values(APP_ROLES).includes(role) || [APP_ROLES.SYSTEM_ADMIN, APP_ROLES.SCHOOL_ADMIN].includes(role) && c.role !== APP_ROLES.SYSTEM_ADMIN) throw AppError.validation('ไม่มีสิทธิ์กำหนดบทบาทนี้');
+    if (String(p.password || '').length < 12) throw AppError.validation('รหัสผ่านต้องมีอย่างน้อย 12 ตัวอักษร');
+    const u = UserService.create(c, p);
+    if (role === APP_ROLES.STUDENT) StudentRepository.insert({ userId: u.userId, studentCode: p.studentCode || '', classId: p.classId || '', number: p.number || '', parentEmail: Utils.email(p.parentEmail), metadataJson: {} }, { actorId: c.userId });
+    if (role === APP_ROLES.TEACHER) TeacherRepository.insert({ userId: u.userId, teacherCode: p.teacherCode || '', department: p.department || '', metadataJson: {} }, { actorId: c.userId });
+    return u;
+  },
+  setUserStatus(c, p) { PermissionService.requireAny(c, ['user.update', 'system.manage']); if (p.userId === c.userId) throw AppError.validation('ไม่สามารถปิดบัญชีตนเอง'); return cleanUser_(UserRepository.update(p.userId, { status: p.status }, { actorId: c.userId })); },
+  listClasses(c) { PermissionService.requireAny(c, ['class.read', 'class.create', 'system.manage']); return ClassRepository.findMany({ status: APP_STATUSES.ACTIVE }); },
+  createClass(c, p) { p = requireObject_(p); p.className = requireNonBlank_(p.className, 'ชื่อห้องเรียน'); return AcademicService.createClass(c, p); },
+  listSubjects(c) { PermissionService.requireAny(c, ['subject.read', 'subject.create', 'system.manage']); const rows=SubjectRepository.findMany({ status: APP_STATUSES.ACTIVE }); if(c.role!==APP_ROLES.TEACHER)return rows; const t=TeacherRepository.findOne({userId:c.userId}); return t?rows.filter(x=>Utils.arr(x.teacherIdsJson).includes(t.teacherId)):[]; },
+  listTeachers(c) { PermissionService.requireAny(c, ['teacher.read', 'subject.create', 'system.manage']); return TeacherRepository.findMany({status:APP_STATUSES.ACTIVE}).map(t=>{const u=UserRepository.findById(t.userId);return Object.assign({},t,{displayName:u?u.displayName:t.teacherCode})}); },
+  createSubject(c, p) { p = requireObject_(p); p.subjectCode = requireNonBlank_(p.subjectCode, 'รหัสวิชา'); p.subjectName = requireNonBlank_(p.subjectName, 'ชื่อวิชา'); p.teacherIdsJson=Utils.arr(p.teacherIdsJson); return AcademicService.createSubject(c, p); },
+  listQuizzes(c) { PermissionService.requireAny(c, ['quiz.available', 'quiz.create', 'system.manage']); const rows = QuizRepository.findMany({ status: APP_STATUSES.ACTIVE }); return c.role === APP_ROLES.TEACHER ? rows.filter(x => x.createdBy === c.userId) : rows; },
+  createQuiz(c, p) { if (c.role === APP_ROLES.TEACHER) requireTeacherSubject_(c, p.subjectId); return QuizService.create(c, p); },
+  quizDetail(c, id) { PermissionService.requireAny(c, ['quiz.create', 'quiz.update', 'system.manage']); requireQuizManage_(c, id); return QuizService.pack(id); },
+  addQuestion(c, p) { requireQuizManage_(c, p.quizId); return QuizService.addQuestion(c, p); },
+  publishQuiz(c, id) { requireQuizManage_(c, id); return QuizService.publish(c, id); },
+  listScores(c) {
+    let scores = ScoreRepository.all(), students = StudentRepository.all(), quizzes = QuizRepository.all();
+    if (c.role === APP_ROLES.STUDENT) { const s = students.find(x => x.userId === c.userId); scores = s ? scores.filter(x => x.studentId === s.studentId && Utils.bool(x.published)) : []; }
+    else if (c.role === APP_ROLES.PARENT) { const u = UserRepository.findById(c.userId), ids = students.filter(x => String(x.parentEmail).toLowerCase() === String(u.email).toLowerCase()).map(x => x.studentId); scores = scores.filter(x => ids.includes(x.studentId) && Utils.bool(x.published)); }
+    else { PermissionService.requireAny(c, ['score.read', 'report.read', 'system.manage']); if (c.role === APP_ROLES.TEACHER) { const quizIds = quizzes.filter(q => q.createdBy === c.userId).map(q => q.quizId); scores = scores.filter(x => quizIds.includes(x.quizId)); } }
+    return scores.map(x => { const s = students.find(v => v.studentId === x.studentId), u = s && UserRepository.findById(s.userId), q = quizzes.find(v => v.quizId === x.quizId); return Object.assign({}, x, { studentName: u ? u.displayName : x.studentId, quizTitle: q ? q.title : x.quizId }); });
+  },
+  publishScore(c, id) { PermissionService.requireAny(c, ['exam.grade', 'system.manage']); const s=ScoreRepository.findById(id); if(!s)throw AppError.notFound('ไม่พบผลคะแนน'); if(c.role===APP_ROLES.TEACHER)requireQuizManage_(c,s.quizId); return ScoreRepository.update(id, { published: true }, { actorId: c.userId }); }
+  ,pendingGrades(c) { PermissionService.requireAny(c,['exam.grade','system.manage']); let rows=AnswerRepository.all().filter(a=>{const q=QuestionRepository.findById(a.questionId);return q&&q.questionType===QUESTION_TYPES.ESSAY&&(a.manualScore===''||a.manualScore===null||a.manualScore===undefined)}); return rows.filter(a=>{const at=AttemptRepository.findById(a.attemptId);if(!at)return false;if(c.role===APP_ROLES.TEACHER)try{requireQuizManage_(c,at.quizId)}catch(e){return false}return true}).map(a=>{const at=AttemptRepository.findById(a.attemptId),q=QuestionRepository.findById(a.questionId),st=StudentRepository.findById(at.studentId),u=st&&UserRepository.findById(st.userId);return Object.assign({},a,{quizId:at.quizId,questionText:q.questionText,maximumScore:q.score,studentName:u?u.displayName:at.studentId})}); },
+  gradeAnswer(c,p) { PermissionService.requireAny(c,['exam.grade','system.manage']); const a=AnswerRepository.findById(p.answerId);if(!a)throw AppError.notFound('ไม่พบคำตอบ');const at=AttemptRepository.findById(a.attemptId),q=QuestionRepository.findById(a.questionId);if(c.role===APP_ROLES.TEACHER)requireQuizManage_(c,at.quizId);const mark=Utils.num(p.manualScore);if(mark<0||mark>Utils.num(q.score))throw AppError.validation('คะแนนเกินคะแนนเต็ม');AnswerRepository.update(a.answerId,{manualScore:mark,finalScore:mark,feedback:Utils.text(p.feedback)},{actorId:c.userId});const answers=AnswerRepository.findMany({attemptId:at.attemptId}),questions=QuestionRepository.findMany({quizId:at.quizId}),total=answers.reduce((s,x)=>s+Utils.num(x.finalScore),0),max=questions.reduce((s,x)=>s+Utils.num(x.score),0),pending=questions.filter(x=>x.questionType===QUESTION_TYPES.ESSAY).some(x=>{const z=answers.find(a=>a.questionId===x.questionId);return z&&(z.manualScore===''||z.manualScore===null||z.manualScore===undefined)}),score=ScoreRepository.findOne({attemptId:at.attemptId}),pct=max?total/max*100:0,quiz=QuizRepository.findById(at.quizId);ScoreRepository.update(score.scoreId,{manualScore:answers.reduce((s,x)=>s+Utils.num(x.manualScore),0),finalScore:total,percentage:pct,passed:pct>=Utils.num(quiz.passPercentage,50),metadataJson:{pendingManual:pending}},{actorId:c.userId});if(!pending)AttemptRepository.update(at.attemptId,{examStatus:EXAM_STATUSES.GRADED,score:total,percentage:pct},{actorId:c.userId});return{graded:true,pending}; }
+});
+
+function requireTeacherSubject_(c, subjectId) { const teacher=TeacherRepository.findOne({userId:c.userId}), subject=SubjectRepository.findById(subjectId); if(!teacher||!subject||!Utils.arr(subject.teacherIdsJson).includes(teacher.teacherId)) throw AppError.permission('ครูไม่ได้รับมอบหมายรายวิชานี้'); }
+function requireQuizManage_(c, quizId) { const q=QuizRepository.findById(quizId); if(!q)throw AppError.notFound('ไม่พบแบบทดสอบ'); if(c.role===APP_ROLES.TEACHER&&q.createdBy!==c.userId)throw AppError.permission('ไม่มีสิทธิ์จัดการแบบทดสอบนี้'); PermissionService.requireAny(c,['quiz.create','quiz.update','quiz.publish','system.manage']); return q; }
