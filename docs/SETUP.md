@@ -17,13 +17,13 @@
    - `SETUP_ADMIN_NAME`, `SETUP_ADMIN_EMAIL`, `SETUP_ADMIN_USERNAME`
    - `SETUP_ADMIN_PASSWORD`: อย่างน้อย 12 ตัวอักษรและไม่ควรซ้ำกับบริการอื่น
 
-5. ใน Apps Script editor เลือกฟังก์ชัน `setupLMSStudioEnterprise_` แล้วกด Run หนึ่งครั้งและอนุมัติสิทธิ์ ฟังก์ชัน private นี้จะอ่าน `INSTALL_KEY` จาก Script Properties และระบบจะล้างค่านี้อัตโนมัติเมื่อติดตั้งสำเร็จ
+5. ใน Apps Script editor เลือกฟังก์ชัน `setupLMSStudioEnterpriseNow` แล้วกด Run หนึ่งครั้งและอนุมัติสิทธิ์ ระบบจะตรวจว่าบัญชี Google ที่รันตรงกับ `SETUP_ADMIN_EMAIL`, อ่าน `INSTALL_KEY` จาก Script Properties และล้างคีย์อัตโนมัติเมื่อติดตั้งสำเร็จ
 6. รัน `checkLMSStudioEnterprise()` และตรวจว่า database, drive และ triggers พร้อม
 7. Deploy > New deployment > Web app โดยเลือก Execute as “User deploying” และกำหนดผู้เข้าถึงตามนโยบายของโรงเรียน
 
 หลังล็อกอินครั้งแรก ให้เปลี่ยนรหัสผ่านผู้ดูแลทันที ห้ามเก็บ `.clasp.json` หรือค่าลับไว้ใน Git
 
-หากลืมรหัสผ่านผู้ดูแล ให้ตั้ง `SETUP_ADMIN_USERNAME` และ `SETUP_ADMIN_PASSWORD` ใน Script Properties แล้วรัน `resetAdminPassword_` จาก editor ระบบจะยกเลิก session เดิมและล้าง `SETUP_ADMIN_PASSWORD` หลังรีเซ็ตสำเร็จ
+หากลืมรหัสผ่านผู้ดูแล ให้ตั้ง `SETUP_ADMIN_EMAIL`, `SETUP_ADMIN_USERNAME` และ `SETUP_ADMIN_PASSWORD` ใน Script Properties แล้วรัน `resetAdminPasswordNow` จาก editor ด้วยบัญชี Google ที่ตรงกับ `SETUP_ADMIN_EMAIL` ระบบจะยกเลิก session เดิมและล้าง `SETUP_ADMIN_PASSWORD` หลังรีเซ็ตสำเร็จ
 
 ## บริการเสริม (ไม่บังคับ)
 
