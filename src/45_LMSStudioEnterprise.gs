@@ -28,6 +28,14 @@ function setupLMSStudioEnterprise_() {
   return installLMSStudioEnterprise(Props.required('INSTALL_KEY'));
 }
 
+// Visible in the Apps Script Run menu and restricted to the configured administrator.
+function setupLMSStudioEnterpriseNow() {
+  const allowedEmail = Props.required('SETUP_ADMIN_EMAIL').trim().toLowerCase();
+  const activeEmail = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  if (!activeEmail || activeEmail !== allowedEmail) throw AppError.permission('บัญชี Google นี้ไม่ได้รับอนุญาตให้ติดตั้งระบบ');
+  return setupLMSStudioEnterprise_();
+}
+
 // Recovery entry point for the Apps Script editor. Never expose this without the trailing _.
 function resetAdminPassword_() {
   const username = Props.get('SETUP_ADMIN_USERNAME', 'admin').trim().toLowerCase();
