@@ -23,7 +23,7 @@
 
 หลังล็อกอินครั้งแรก ให้เปลี่ยนรหัสผ่านผู้ดูแลทันที ห้ามเก็บ `.clasp.json` หรือค่าลับไว้ใน Git
 
-หากลืมรหัสผ่านผู้ดูแล ให้ตั้ง `SETUP_ADMIN_USERNAME` และ `SETUP_ADMIN_PASSWORD` ใน Script Properties แล้วรัน `resetAdminPassword_` จาก editor ระบบจะยกเลิก session เดิมและล้าง `SETUP_ADMIN_PASSWORD` หลังรีเซ็ตสำเร็จ
+หากลืมรหัสผ่านผู้ดูแล ให้ตั้ง `SETUP_ADMIN_EMAIL`, `SETUP_ADMIN_USERNAME` และ `SETUP_ADMIN_PASSWORD` ใน Script Properties แล้วรัน `resetAdminPasswordNow` จาก editor ด้วยบัญชี Google ที่ตรงกับ `SETUP_ADMIN_EMAIL` ระบบจะยกเลิก session เดิมและล้าง `SETUP_ADMIN_PASSWORD` หลังรีเซ็ตสำเร็จ
 
 ## บริการเสริม (ไม่บังคับ)
 

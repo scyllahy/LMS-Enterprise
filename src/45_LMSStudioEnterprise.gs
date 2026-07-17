@@ -50,3 +50,11 @@ function resetAdminPassword_() {
   Props.set('SETUP_ADMIN_PASSWORD', '');
   return { reset: true, username: username };
 }
+
+// Visible in the Apps Script Run menu. Restricted to the configured administrator email.
+function resetAdminPasswordNow() {
+  const allowedEmail = Props.required('SETUP_ADMIN_EMAIL').trim().toLowerCase();
+  const activeEmail = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  if (!activeEmail || activeEmail !== allowedEmail) throw AppError.permission('บัญชี Google นี้ไม่ได้รับอนุญาตให้รีเซ็ตรหัสผ่าน');
+  return resetAdminPassword_();
+}
