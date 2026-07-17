@@ -4,7 +4,7 @@ const API_ROUTES = {
   'auth.me': { h:c => cleanUser_(UserRepository.findById(c.userId)) }, 'auth.change-password': { h:(c,p) => AuthService.changePassword(c,p) },
   'portal.bootstrap': { h:c => PortalService.bootstrap(c) },
   'user.list': { h:c => PortalService.listUsers(c) }, 'user.create': { h:(c,p) => PortalService.createUser(c,p) }, 'user.status': { h:(c,p) => PortalService.setUserStatus(c,p) },
-  'class.list': { h:c => PortalService.listClasses(c) }, 'class.create': { h:(c,p) => PortalService.createClass(c,p) },
+  'class.list': { h:c => PortalService.listClasses(c) }, 'class.create': { h:(c,p) => PortalService.createClass(c,p) }, 'class.delete': { h:(c,p) => PortalService.deleteClass(c,p.classId) },
   'subject.list': { h:c => PortalService.listSubjects(c) }, 'subject.create': { h:(c,p) => PortalService.createSubject(c,p) }, 'teacher.list': { h:c => PortalService.listTeachers(c) },
   'quiz.available': { h:() => QuizService.available() }, 'quiz.list': { h:c => PortalService.listQuizzes(c) }, 'quiz.detail': { h:(c,p) => PortalService.quizDetail(c,p.quizId) },
   'quiz.create': { h:(c,p) => PortalService.createQuiz(c,p) }, 'quiz.add-question': { h:(c,p) => PortalService.addQuestion(c,p) }, 'quiz.publish': { h:(c,p) => PortalService.publishQuiz(c,p.quizId) },
