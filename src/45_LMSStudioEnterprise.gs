@@ -43,7 +43,8 @@ function resetAdminPassword_() {
     status: APP_STATUSES.ACTIVE,
     mustChangePassword: true
   }, { actorId: 'PASSWORD_RECOVERY' });
-  SessionRepository.findMany({ userId: user.userId }).forEach(s => {
+  const sessions = SessionRepository.findMany({ userId: user.userId }) || [];
+  sessions.forEach(s => {
     if (!Utils.bool(s.revoked)) SessionRepository.update(s.sessionId, { revoked: true }, { actorId: 'PASSWORD_RECOVERY' });
   });
   Props.set('SETUP_ADMIN_PASSWORD', '');
