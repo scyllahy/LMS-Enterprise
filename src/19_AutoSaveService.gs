@@ -1,0 +1,1 @@
+const AutoSaveService=Object.freeze({save:(c,p)=>ExamEngine.saveAnswer(c,p),batch:(c,p)=>Utils.arr(p.answers).map(a=>ExamEngine.saveAnswer(c,Object.assign({},a,{attemptId:p.attemptId}))),heartbeat(c,id){const a=AttemptRepository.findById(id);return AttemptRepository.update(id,{metadataJson:Object.assign({},a.metadataJson,{lastHeartbeatAt:Utils.now()})},{actorId:c.userId})}});

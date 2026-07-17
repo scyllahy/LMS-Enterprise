@@ -1,0 +1,1 @@
+const AuditService=Object.freeze({record(c,d){return AuditRepository.insert({action:d.action||'',module:d.module||'',entity:d.entity||'',entityId:d.entityId||'',userId:c.userId||'SYSTEM',requestId:c.requestId||'',detailJson:d.detailJson||{},occurredAt:Utils.now()},{actorId:c.userId||'SYSTEM'})},recordSuccess(c,d){return this.record(c,d)}});

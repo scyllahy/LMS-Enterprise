@@ -1,0 +1,1 @@
+function seedDemoData(){const c=systemContext_('DEMO');return{classroom:AcademicService.createClass(c,{className:'ม.1/1',gradeLevel:'ม.1',academicYear:String(new Date().getFullYear()+543),metadataJson:{}}),subject:AcademicService.createSubject(c,{subjectCode:'ว21101',subjectName:'วิทยาการคำนวณ 1',gradeLevel:'ม.1',teacherIdsJson:[],metadataJson:{}})}}

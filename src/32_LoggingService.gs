@@ -1,0 +1,1 @@
+const LoggingService=Object.freeze({log(level,c,m,d){console.log(JSON.stringify({level,message:m,requestId:c&&c.requestId,userId:c&&c.userId,data:d||{},time:Utils.now()}))},info(c,m,d){this.log('INFO',c,m,d)},error(c,m,d){this.log('ERROR',c,m,d)},critical(c,m,d){this.log('CRITICAL',c,m,d);try{TelegramService.adminAlert('Critical Error',m)}catch(e){}}});

@@ -1,0 +1,1 @@
+const BackupService=Object.freeze({backupAll(c){PermissionService.requireAny(c,['backup.create','system.manage']);const f=DriveApp.getFileById(DB.ss().getId()).makeCopy('Backup '+Utilities.formatDate(new Date(),APP_CONFIG.app.timezone,'yyyyMMdd-HHmmss'),StorageService.root());return{backupId:f.getId(),url:f.getUrl(),createdAt:Utils.now()}}});

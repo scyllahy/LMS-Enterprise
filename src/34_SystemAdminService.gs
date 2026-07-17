@@ -1,0 +1,1 @@
+const SystemAdminService=Object.freeze({maintenance(c,on,msg){PermissionService.require(c,'system.manage');Props.set('MAINTENANCE_MODE',Utils.bool(on));Props.set('MAINTENANCE_MESSAGE',msg||'');return{enabled:Utils.bool(on),message:msg||''}},info(c){PermissionService.requireAny(c,['system.monitor','system.manage']);return LMSStudioEnterprise.info()}});

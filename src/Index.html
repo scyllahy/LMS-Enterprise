@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="th"><head><base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#173b57"><?!= include_('Styles'); ?></head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <main class="shell">
+    <section id="loginView" class="login-layout">
+      <div class="brand"><span class="eyebrow">LEARNING MANAGEMENT SYSTEM</span><h1>LMS Studio<br><em>Enterprise</em></h1><p>พื้นที่เรียนรู้ จัดสอบ และติดตามผล สำหรับโรงเรียนยุคดิจิทัล</p></div>
+      <form id="loginForm" class="card login-card"><div class="logo">LS</div><h2>ยินดีต้อนรับ</h2><p id="school" class="muted">กำลังโหลด...</p><label>ชื่อผู้ใช้<input id="username" autocomplete="username" required></label><label>รหัสผ่าน<input id="password" type="password" autocomplete="current-password" required></label><button id="loginButton" class="primary" type="submit">เข้าสู่ระบบ</button><p id="loginError" class="error"></p></form>
+    </section>
+    <section id="appView" class="app hidden">
+      <aside><div class="aside-brand"><span class="logo small">LS</span><div><strong>LMS Studio</strong><small id="asideSchool"></small></div></div><nav><button class="nav active" data-page="home">ภาพรวม</button><button class="nav" data-page="quizzes">แบบทดสอบ</button></nav><div class="profile"><span id="avatar"></span><div><strong id="displayName"></strong><small id="role"></small></div><button id="logoutButton" title="ออกจากระบบ">↪</button></div></aside>
+      <div class="content"><header><div><span class="eyebrow">แดชบอร์ด</span><h2 id="greeting">สวัสดี</h2></div><button id="refreshButton" class="secondary">รีเฟรช</button></header><section id="page" aria-live="polite"></section></div>
+    </section>
+  </main>
+  <div id="examModal" class="modal hidden"><div class="modal-card"><div id="examContent"></div></div></div>
+  <?!= include_('Scripts'); ?>
+</body></html>
