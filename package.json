@@ -1,0 +1,14 @@
+{
+  "name": "lms-studio-enterprise-v3",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node tools/check.js",
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2"
+  }
+}

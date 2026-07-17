@@ -1,0 +1,1 @@
+const Security=Object.freeze({hash(p,s){const salt=s||Utilities.getUuid();return{salt,hash:Utils.sha(salt+':'+String(p))}},verify(p,s,h){return this.hash(p,s).hash===h},token(){return Utilities.base64EncodeWebSafe(Utilities.getUuid()+Date.now()+Math.random()).replace(/=+$/,'')}});

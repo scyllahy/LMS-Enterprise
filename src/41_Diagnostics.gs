@@ -1,0 +1,1 @@
+function checkLMSStudioEnterprise(){const r={version:Props.get('APP_VERSION',APP_CONFIG.app.version)};try{r.database={ok:true,name:DB.ss().getName()}}catch(e){r.database={ok:false,error:e.message}}try{r.drive={ok:true,name:StorageService.root().getName()}}catch(e){r.drive={ok:false,error:e.message}}r.triggers=ScriptApp.getProjectTriggers().map(t=>t.getHandlerFunction());return r}

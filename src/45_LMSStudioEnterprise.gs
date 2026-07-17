@@ -1,0 +1,24 @@
+const LMSStudioEnterprise = Object.freeze({
+  info() { return { name: APP_CONFIG.app.name, version: Props.get('APP_VERSION', APP_CONFIG.app.version), environment: APP_CONFIG.app.environment, schoolName: Props.get('SCHOOL_NAME', 'โรงเรียนของฉัน'), spreadsheetId: Props.get('LMS_SPREADSHEET_ID', ''), rootFolderId: Props.get('LMS_ROOT_FOLDER_ID', ''), installedAt: Props.get('INSTALLED_AT', ''), serverTime: Utils.now() }; },
+  install(c, p) {
+    p = Object.assign({ schoolName: 'โรงเรียนของฉัน', schoolCode: 'SCHOOL', adminName: 'ผู้ดูแลระบบ', adminEmail: '', adminUsername: 'admin', adminPassword: '', installJobs: true }, p || {});
+    if (String(p.adminPassword).length < 12) throw AppError.validation('รหัสผ่านผู้ดูแลต้องมีอย่างน้อย 12 ตัวอักษร');
+    Props.secret('LMS_SESSION_SECRET'); Props.secret('LMS_SYSTEM_API_KEY');
+    Props.set('SCHOOL_NAME', p.schoolName); Props.set('SCHOOL_CODE', p.schoolCode); Props.set('APP_VERSION', APP_CONFIG.app.version);
+    StorageService.root(); DB.ss(); BootstrapService.installOrUpgrade(); BootstrapService.seed(c);
+    if (!UserRepository.findOne({ username: String(p.adminUsername).toLowerCase() })) UserService.create(c, { username: p.adminUsername, password: p.adminPassword, email: p.adminEmail, displayName: p.adminName, role: APP_ROLES.SYSTEM_ADMIN, permissions: ['*'], mustChangePassword: true });
+    if (p.installJobs) SchedulerService.installDefaults(c);
+    Props.set('INSTALLED_AT', Utils.now()); Props.set('INSTALL_KEY', '');
+    return { installed: true, info: this.info(), diagnostics: checkLMSStudioEnterprise() };
+  }
+});
+
+function installLMSStudioEnterprise(installKey) {
+  const expected = Props.required('INSTALL_KEY');
+  if (!installKey || !Security.verify(String(installKey), 'INSTALL', Utils.sha('INSTALL:' + expected))) throw AppError.permission('INSTALL_KEY ไม่ถูกต้อง');
+  return LMSStudioEnterprise.install(systemContext_('INSTALL'), {
+    schoolName: Props.get('SETUP_SCHOOL_NAME', 'โรงเรียนของฉัน'), schoolCode: Props.get('SETUP_SCHOOL_CODE', 'SCHOOL'),
+    adminName: Props.get('SETUP_ADMIN_NAME', 'ผู้ดูแลระบบ'), adminEmail: Props.get('SETUP_ADMIN_EMAIL', ''),
+    adminUsername: Props.get('SETUP_ADMIN_USERNAME', 'admin'), adminPassword: Props.required('SETUP_ADMIN_PASSWORD'), installJobs: true
+  });
+}
