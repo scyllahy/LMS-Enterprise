@@ -30,6 +30,7 @@ const PortalService = Object.freeze({
   quizDetail(c, id) { PermissionService.requireAny(c, ['quiz.create', 'quiz.update', 'system.manage']); requireQuizManage_(c, id); return QuizService.pack(id); },
   addQuestion(c, p) { requireQuizManage_(c, p.quizId); return QuizService.addQuestion(c, p); },
   publishQuiz(c, id) { requireQuizManage_(c, id); return QuizService.publish(c, id); },
+  setQuizPublication(c, p) { const q=requireQuizManage_(c,p.quizId);PermissionService.requireAny(c,['quiz.publish','system.manage']);const published=Utils.bool(p.published);return QuizRepository.update(q.quizId,{published:published},{actorId:c.userId}); },
   listScores(c) {
     let scores = ScoreRepository.all(), students = StudentRepository.all(), quizzes = QuizRepository.all();
     if (c.role === APP_ROLES.STUDENT) { const s = students.find(x => x.userId === c.userId); scores = s ? scores.filter(x => x.studentId === s.studentId && Utils.bool(x.published)) : []; }
