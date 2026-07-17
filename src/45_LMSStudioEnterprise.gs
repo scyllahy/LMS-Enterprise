@@ -22,3 +22,8 @@ function installLMSStudioEnterprise(installKey) {
     adminUsername: Props.get('SETUP_ADMIN_USERNAME', 'admin'), adminPassword: Props.required('SETUP_ADMIN_PASSWORD'), installJobs: true
   });
 }
+
+// Private Apps Script editor entry point. Functions ending in _ are not exposed to google.script.run.
+function setupLMSStudioEnterprise_() {
+  return installLMSStudioEnterprise(Props.required('INSTALL_KEY'));
+}

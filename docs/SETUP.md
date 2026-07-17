@@ -17,7 +17,7 @@
    - `SETUP_ADMIN_NAME`, `SETUP_ADMIN_EMAIL`, `SETUP_ADMIN_USERNAME`
    - `SETUP_ADMIN_PASSWORD`: อย่างน้อย 12 ตัวอักษรและไม่ควรซ้ำกับบริการอื่น
 
-5. ใน Apps Script editor รัน `installLMSStudioEnterprise('ค่า INSTALL_KEY')` หนึ่งครั้งและอนุมัติสิทธิ์ เมื่อสำเร็จระบบจะล้าง `INSTALL_KEY` อัตโนมัติ
+5. ใน Apps Script editor เลือกฟังก์ชัน `setupLMSStudioEnterprise_` แล้วกด Run หนึ่งครั้งและอนุมัติสิทธิ์ ฟังก์ชัน private นี้จะอ่าน `INSTALL_KEY` จาก Script Properties และระบบจะล้างค่านี้อัตโนมัติเมื่อติดตั้งสำเร็จ
 6. รัน `checkLMSStudioEnterprise()` และตรวจว่า database, drive และ triggers พร้อม
 7. Deploy > New deployment > Web app โดยเลือก Execute as “User deploying” และกำหนดผู้เข้าถึงตามนโยบายของโรงเรียน
 
