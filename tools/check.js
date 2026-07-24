@@ -33,6 +33,14 @@ if (!runtimeSource.includes('CacheService.getScriptCache()') || !runtimeSource.i
 const portal = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
 if (!portal.includes("indexBy_(UserRepository.all(),'userId')") || /map\([^\n]*UserRepository\.findById/.test(portal)) { failed = true; console.error('Portal list endpoints must use bulk lookup maps instead of per-row sheet reads'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
+const clientApi = fs.readFileSync(path.join(src, '38_ClientApi.gs'), 'utf8');
+if (!clientApi.includes('JSON.parse(JSON.stringify(ApiGateway.handle(') || !client.includes('if(!r||!r.success)')) { failed = true; console.error('API responses must be transport-safe and null-guarded'); }
+try {
+  const transportContext = vm.createContext({ ApiGateway: { handle: () => ({ success: true, data: { updatedAt: new Date('2026-01-01T00:00:00.000Z') } }) } });
+  new vm.Script(clientApi, { filename: '38_ClientApi.gs' }).runInContext(transportContext);
+  const transported = transportContext.apiCall('test', {}, '');
+  if (transported.data.updatedAt !== '2026-01-01T00:00:00.000Z') throw new Error('Date was not normalized');
+} catch (error) { failed = true; console.error(`API transport test failed: ${error.message}`); }
 if (!client.includes("onclick=\"deleteQuiz('") || !client.includes("server('quiz.delete'") || !gateway.includes("'quiz.delete':")) { failed = true; console.error('Quiz soft-delete must be wired through UI and API'); }
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }

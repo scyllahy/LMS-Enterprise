@@ -8,7 +8,7 @@ function clientCacheKey(key){return CLIENT_CACHE_PREFIX+(state.user?.userId||'gu
 function clientCacheGet(key,ttl){try{const raw=localStorage.getItem(clientCacheKey(key));if(!raw)return null;const item=JSON.parse(raw);if(!item||Date.now()-item.savedAt>ttl){localStorage.removeItem(clientCacheKey(key));return null}return item.value}catch(e){return null}}
 function clientCacheSet(key,value){try{localStorage.setItem(clientCacheKey(key),JSON.stringify({savedAt:Date.now(),value:value}))}catch(e){}}
 function clientCacheInvalidate(){const prefixes=[...arguments],root=CLIENT_CACHE_PREFIX+(state.user?.userId||'guest')+':';try{for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key&&key.startsWith(root)&&prefixes.some(x=>key.slice(root.length).startsWith(x)))localStorage.removeItem(key)}}catch(e){}}
-function unwrap(r){if(!r.success)throw new Error(r.error?.message||'เกิดข้อผิดพลาด');return r.data}
+function unwrap(r){if(!r||!r.success)throw new Error(r&&r.error?.message||'ไม่ได้รับคำตอบจากเซิร์ฟเวอร์ กรุณาลองใหม่');return r.data}
 function notify(m){$('toast').textContent=m;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2800)}
 function busy(b,on,label){if(!b)return;b.disabled=on;if(label)b.textContent=on?'กำลังบันทึก...':label}
 function roleName(r){return({SYSTEM_ADMIN:'ผู้ดูแลระบบ',SCHOOL_ADMIN:'ผู้ดูแลโรงเรียน',TEACHER:'ครู',STUDENT:'นักเรียน',PARENT:'ผู้ปกครอง'})[r]||r}
