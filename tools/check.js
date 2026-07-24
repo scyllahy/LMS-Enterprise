@@ -42,6 +42,10 @@ try {
   if (transported.data.updatedAt !== '2026-01-01T00:00:00.000Z') throw new Error('Date was not normalized');
 } catch (error) { failed = true; console.error(`API transport test failed: ${error.message}`); }
 if (!client.includes("onclick=\"deleteQuiz('") || !client.includes("server('quiz.delete'") || !gateway.includes("'quiz.delete':")) { failed = true; console.error('Quiz soft-delete must be wired through UI and API'); }
+if (!client.includes("server('quiz.upload-image'") || !client.includes("richCommand(this,'bold')") || !client.includes("richCommand(this,'italic')") || !client.includes("richCommand(this,'underline')") || !gateway.includes("'quiz.upload-image':")) { failed = true; console.error('Secure rich-text question editor is not wired end to end'); }
+const portalSource = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
+const storageSource = fs.readFileSync(path.join(src, '27_StorageService.gs'), 'utf8');
+if (!portalSource.includes('sanitizeRichText_(') || !storageSource.includes('questionImage(c,p)') || !storageSource.includes('2*1024*1024')) { failed = true; console.error('Rich-text sanitization or image validation is missing'); }
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
 const routes = new Set([...gateway.matchAll(/'([a-z][a-z0-9.-]+)'\s*:/g)].map((m) => m[1]));
