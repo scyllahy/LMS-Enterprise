@@ -21,6 +21,8 @@ for (const name of ['Index.html', 'Styles.html', 'Scripts.html']) {
 const client = fs.readFileSync(path.join(src, 'Scripts.html'), 'utf8').replace(/^\s*<script>/, '').replace(/<\/script>\s*$/, '');
 try { new vm.Script(client, { filename: 'Scripts.html' }); }
 catch (error) { failed = true; console.error(error.message); }
+if (!client.includes("$('academicYear').onchange=changeAcademicYear") || !client.includes("delete state.data.subjects")) { failed = true; console.error('Academic year cache invalidation is missing'); }
+if (client.includes("if(manage&&!state.data.subjects)")) { failed = true; console.error('Quiz subjects must reload when academic year changes'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
 const routes = new Set([...gateway.matchAll(/'([a-z][a-z0-9.-]+)'\s*:/g)].map((m) => m[1]));
 const calls = new Set([...client.matchAll(/server\('([a-z][a-z0-9.-]+)'/g)].map((m) => m[1]));
