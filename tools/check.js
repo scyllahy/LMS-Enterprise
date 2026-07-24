@@ -29,6 +29,7 @@ if (/raw\.githubusercontent\.com|https?:\/\/github\.com\/[^\s"']+\/(?:raw|blob)\
 if (/\.getValue\s*\(/.test(runtimeSource) || !runtimeSource.includes('getDataRange().getValues()')) { failed = true; console.error('Spreadsheet reads must use one bulk getDataRange().getValues() call'); }
 if (!client.includes('localStorage.setItem(clientCacheKey(key)') || /localStorage\.(?:setItem|getItem)\(['"]lmsToken/.test(client)) { failed = true; console.error('Reference cache is missing or authentication token is stored in localStorage'); }
 if (!client.includes("navigationPending=page") || !client.includes("while(navigationPending)")) { failed = true; console.error('Navigation requests must be coalesced to prevent stale page rendering'); }
+if (!client.includes('renderStudentListPage') || !client.includes('renderStudentImportPage') || !client.includes('หน้า ${page} จาก ${pages}')) { failed = true; console.error('Student lists must support pagination'); }
 if (!runtimeSource.includes('CacheService.getScriptCache()') || !runtimeSource.includes('invalidateCachesForAction_')) { failed = true; console.error('Apps Script cache or write invalidation is missing'); }
 const portal = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
 if (!portal.includes("indexBy_(UserRepository.all(),'userId')") || /map\([^\n]*UserRepository\.findById/.test(portal)) { failed = true; console.error('Portal list endpoints must use bulk lookup maps instead of per-row sheet reads'); }
@@ -46,6 +47,7 @@ if (!client.includes("server('quiz.upload-image'") || !client.includes("richComm
 const portalSource = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
 const storageSource = fs.readFileSync(path.join(src, '27_StorageService.gs'), 'utf8');
 if (!portalSource.includes('sanitizeRichText_(') || !storageSource.includes('questionImage(c,p)') || !storageSource.includes('2*1024*1024')) { failed = true; console.error('Rich-text sanitization or image validation is missing'); }
+if (!portalSource.includes('role===APP_ROLES.STUDENT?4:12') || !portalSource.includes('if(password.length<4)') || !fs.readFileSync(path.join(src, '15_AuthService.gs'), 'utf8').includes('if (next.length < 12)')) { failed = true; console.error('Student initial passwords must allow 4 characters while changed passwords remain at 12'); }
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
 const routes = new Set([...gateway.matchAll(/'([a-z][a-z0-9.-]+)'\s*:/g)].map((m) => m[1]));
