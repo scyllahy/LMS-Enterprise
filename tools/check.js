@@ -23,6 +23,7 @@ try { new vm.Script(client, { filename: 'Scripts.html' }); }
 catch (error) { failed = true; console.error(error.message); }
 if (!client.includes("$('academicYear').onchange=changeAcademicYear") || !client.includes("delete state.data.subjects")) { failed = true; console.error('Academic year cache invalidation is missing'); }
 if (client.includes("if(manage&&!state.data.subjects)")) { failed = true; console.error('Quiz subjects must reload when academic year changes'); }
+if (!client.includes("x.teacherNames.join(', ')") || !fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8').includes('teacherNames:')) { failed = true; console.error('Subject teacher names are not wired end to end'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
