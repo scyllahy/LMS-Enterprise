@@ -31,6 +31,7 @@ if (!client.includes('localStorage.setItem(clientCacheKey(key)') || /localStorag
 if (!client.includes("navigationPending=page") || !client.includes("while(navigationPending)")) { failed = true; console.error('Navigation requests must be coalesced to prevent stale page rendering'); }
 if (!client.includes('renderStudentListPage') || !client.includes('renderStudentImportPage') || !client.includes('หน้า ${page} จาก ${pages}')) { failed = true; console.error('Student lists must support pagination'); }
 if (!client.includes('studentGradeFilter') || !client.includes('studentClassFilter') || !client.includes('filteredStudents()') || !client.includes('clearStudentFilters()')) { failed = true; console.error('Student list must support grade and classroom filters'); }
+if (!client.includes('startExamSecurity()') || !client.includes("exam.security-event") || !client.includes('requestExamFullscreen()') || !client.includes('visibilitychange')) { failed = true; console.error('Student exam must enable fullscreen anti-cheat monitoring'); }
 if (!runtimeSource.includes('CacheService.getScriptCache()') || !runtimeSource.includes('invalidateCachesForAction_')) { failed = true; console.error('Apps Script cache or write invalidation is missing'); }
 const portal = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
 if (!portal.includes("indexBy_(UserRepository.all(),'userId')") || /map\([^\n]*UserRepository\.findById/.test(portal)) { failed = true; console.error('Portal list endpoints must use bulk lookup maps instead of per-row sheet reads'); }
