@@ -6,12 +6,16 @@ const ExamEngine = Object.freeze({
     const p = QuizService.pack(quizId), q = p.quiz, now = new Date();
     if (!q.published || (q.openAt && new Date(q.openAt) > now) || (q.closeAt && new Date(q.closeAt) < now)) throw AppError.permission('ข้อสอบยังไม่เปิดหรือปิดรับคำตอบแล้ว');
     const active = AttemptRepository.findOne({ quizId, studentId: st.studentId, examStatus: EXAM_STATUSES.IN_PROGRESS });
-    if (active) throw AppError.conflict('มีการสอบที่กำลังดำเนินอยู่');
+    if (active) {
+      if (active.endsAt && new Date(active.endsAt) <= now) { this.submit(c, active.attemptId, 'TIME_EXPIRED'); throw AppError.conflict('การสอบครั้งก่อนหมดเวลาและระบบส่งคำตอบให้อัตโนมัติแล้ว'); }
+      AttemptRepository.update(active.attemptId,{sessionId:c.sessionId},{actorId:c.userId});
+      return examPayload_(active,p,true);
+    }
     const used = AttemptRepository.findMany({ quizId, studentId: st.studentId }).filter(a => a.examStatus !== EXAM_STATUSES.IN_PROGRESS).length;
     if (q.attemptLimit && used >= Utils.int(q.attemptLimit)) throw AppError.conflict('ใช้สิทธิ์ทำข้อสอบครบแล้ว');
     const end = q.timeLimitMinutes ? new Date(now.getTime() + Utils.int(q.timeLimitMinutes) * 60000) : null;
     const a = AttemptRepository.insert({ quizId, studentId: st.studentId, sessionId: c.sessionId, examStatus: EXAM_STATUSES.IN_PROGRESS, startedAt: now.toISOString(), endsAt: end ? end.toISOString() : '', submittedAt: '', score: 0, maximumScore: p.questions.reduce((s, x) => s + Utils.num(x.score), 0), percentage: 0, riskScore: 0, metadataJson: {} }, { actorId: c.userId });
-    return { attempt: a, quiz: q, questions: p.questions.map(question => { const x = Object.assign({}, question); delete x.correctAnswerJson; return x; }) };
+    return examPayload_(a,p,false);
   },
   saveAnswer(c, p) {
     p = requireObject_(p);
@@ -32,6 +36,8 @@ const ExamEngine = Object.freeze({
   },
   autoSubmit(c, id) { return this.submit(c, id, 'TIME_EXPIRED'); }
 });
+
+function examPayload_(attempt,pack,resumed){return{attempt:attempt,quiz:pack.quiz,resumed:resumed,answers:AnswerRepository.findMany({attemptId:attempt.attemptId}).map(x=>({questionId:x.questionId,answerJson:x.answerJson||{}})),questions:pack.questions.map(question=>{const x=Object.assign({},question);delete x.correctAnswerJson;return x})}}
 
 function ownedAttempt_(c, id) {
   const a = AttemptRepository.findById(id);
