@@ -28,6 +28,7 @@ function invalidateCachesForAction_(action) {
     'user.status': ['teachers', 'subjects'],
     'quiz.create': ['academic-years'],
     'quiz.clone': ['academic-years']
+    ,'quiz.delete': ['academic-years']
   }[action];
   if (scopes) AppCache.invalidate.apply(AppCache, scopes);
 }

@@ -33,6 +33,7 @@ if (!runtimeSource.includes('CacheService.getScriptCache()') || !runtimeSource.i
 const portal = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
 if (!portal.includes("indexBy_(UserRepository.all(),'userId')") || /map\([^\n]*UserRepository\.findById/.test(portal)) { failed = true; console.error('Portal list endpoints must use bulk lookup maps instead of per-row sheet reads'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
+if (!client.includes("onclick=\"deleteQuiz('") || !client.includes("server('quiz.delete'") || !gateway.includes("'quiz.delete':")) { failed = true; console.error('Quiz soft-delete must be wired through UI and API'); }
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
 const routes = new Set([...gateway.matchAll(/'([a-z][a-z0-9.-]+)'\s*:/g)].map((m) => m[1]));
