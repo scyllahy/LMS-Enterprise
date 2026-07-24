@@ -24,6 +24,14 @@ catch (error) { failed = true; console.error(error.message); }
 if (!client.includes("$('academicYear').onchange=changeAcademicYear") || !client.includes("delete state.data.subjects")) { failed = true; console.error('Academic year cache invalidation is missing'); }
 if (client.includes("if(manage&&!state.data.subjects)")) { failed = true; console.error('Quiz subjects must reload when academic year changes'); }
 if (!client.includes("x.teacherNames.join(', ')") || !fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8').includes('teacherNames:')) { failed = true; console.error('Subject teacher names are not wired end to end'); }
+const runtimeSource = ['Index.html', 'Styles.html', 'Scripts.html', ...files].map((name) => fs.readFileSync(path.join(src, name), 'utf8')).join('\n');
+if (/raw\.githubusercontent\.com|https?:\/\/github\.com\/[^\s"']+\/(?:raw|blob)\//.test(runtimeSource)) { failed = true; console.error('Runtime static assets must not load from GitHub; use a pinned jsDelivr URL'); }
+if (/\.getValue\s*\(/.test(runtimeSource) || !runtimeSource.includes('getDataRange().getValues()')) { failed = true; console.error('Spreadsheet reads must use one bulk getDataRange().getValues() call'); }
+if (!client.includes('localStorage.setItem(clientCacheKey(key)') || /localStorage\.(?:setItem|getItem)\(['"]lmsToken/.test(client)) { failed = true; console.error('Reference cache is missing or authentication token is stored in localStorage'); }
+if (!client.includes("navigationPending=page") || !client.includes("while(navigationPending)")) { failed = true; console.error('Navigation requests must be coalesced to prevent stale page rendering'); }
+if (!runtimeSource.includes('CacheService.getScriptCache()') || !runtimeSource.includes('invalidateCachesForAction_')) { failed = true; console.error('Apps Script cache or write invalidation is missing'); }
+const portal = fs.readFileSync(path.join(src, '46_PortalService.gs'), 'utf8');
+if (!portal.includes("indexBy_(UserRepository.all(),'userId')") || /map\([^\n]*UserRepository\.findById/.test(portal)) { failed = true; console.error('Portal list endpoints must use bulk lookup maps instead of per-row sheet reads'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
 if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
