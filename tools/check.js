@@ -24,6 +24,8 @@ catch (error) { failed = true; console.error(error.message); }
 if (!client.includes("$('academicYear').onchange=changeAcademicYear") || !client.includes("delete state.data.subjects")) { failed = true; console.error('Academic year cache invalidation is missing'); }
 if (client.includes("if(manage&&!state.data.subjects)")) { failed = true; console.error('Quiz subjects must reload when academic year changes'); }
 const gateway = fs.readFileSync(path.join(src, '36_ApiGateway.gs'), 'utf8');
+const manifest = JSON.parse(fs.readFileSync(path.join(src, 'appsscript.json'), 'utf8'));
+if (manifest.webapp?.access !== 'ANYONE_ANONYMOUS' || manifest.webapp?.executeAs !== 'USER_DEPLOYING') { failed = true; console.error('Web app manifest must allow anonymous LMS login and execute as deployer'); }
 const routes = new Set([...gateway.matchAll(/'([a-z][a-z0-9.-]+)'\s*:/g)].map((m) => m[1]));
 const calls = new Set([...client.matchAll(/server\('([a-z][a-z0-9.-]+)'/g)].map((m) => m[1]));
 for (const call of calls) if (!routes.has(call)) { failed = true; console.error(`Client API route is missing: ${call}`); }
